@@ -20,10 +20,10 @@ async function main() {
 
   console.log('✅ Created test user:', user.email);
 
-  // Create sample pharmacies (Mumbai area coordinates)
+  // Create two main pharmacies with distinct locations
   const pharmacies = [
     {
-      name: 'MedPlus Pharmacy',
+      name: 'Central Pharmacy',
       address: '123 MG Road, Mumbai, Maharashtra 400001',
       latitude: 19.0760,
       longitude: 72.8777,
@@ -36,7 +36,7 @@ async function main() {
       estimatedDeliveryMinutes: 30,
     },
     {
-      name: 'Apollo Pharmacy',
+      name: 'Budget Pharmacy',
       address: '456 Bandra West, Mumbai, Maharashtra 400050',
       latitude: 19.0596,
       longitude: 72.8295,
@@ -44,9 +44,9 @@ async function main() {
       verified: true,
       rating: 4.7,
       ratingCount: 200,
-      deliveryFee: 40,
-      minOrderValue: 150,
-      estimatedDeliveryMinutes: 25,
+      deliveryFee: 25,
+      minOrderValue: 80,
+      estimatedDeliveryMinutes: 40,
     },
     {
       name: 'Wellness Forever',
@@ -70,7 +70,7 @@ async function main() {
       verified: true,
       rating: 4.6,
       ratingCount: 300,
-      deliveryFee: 25,
+      deliveryFee: 20,
       minOrderValue: 50,
       estimatedDeliveryMinutes: 20,
     },
@@ -157,11 +157,20 @@ async function main() {
     console.log(`✅ Created product: ${product.name}`);
   }
 
-  // Create inventory for each pharmacy-product combination
+  // Create inventory with different prices per pharmacy to simulate price comparison
+  const priceMap: Record<string, Record<string, number>> = {
+    'Paracetamol 500mg': { 'Central Pharmacy': 4500, 'Budget Pharmacy': 4200, 'Wellness Forever': 4800, '1mg Pharmacy': 3900 },
+    'Ibuprofen 400mg': { 'Central Pharmacy': 7500, 'Budget Pharmacy': 8000, 'Wellness Forever': 7200, '1mg Pharmacy': 7800 },
+    'Amoxicillin 500mg': { 'Central Pharmacy': 12000, 'Budget Pharmacy': 11500, 'Wellness Forever': 13000, '1mg Pharmacy': 10800 },
+    'Metformin 500mg': { 'Central Pharmacy': 6000, 'Budget Pharmacy': 5800, 'Wellness Forever': 6500, '1mg Pharmacy': 5500 },
+    'Cetirizine 10mg': { 'Central Pharmacy': 3500, 'Budget Pharmacy': 3200, 'Wellness Forever': 3800, '1mg Pharmacy': 3000 },
+  };
+
   for (const pharmacy of createdPharmacies) {
     for (const product of createdProducts) {
-      const basePrice = Math.random() * 200 + 50; // Random price between 50-250
-      const price = Math.round(basePrice * 100) / 100;
+      const pharmacyName = pharmacy.name;
+      const prices = priceMap[product.name];
+      const price = prices ? prices[pharmacyName] || Math.round(Math.random() * 200 + 50) * 100 : Math.round(Math.random() * 200 + 50) * 100;
       const quantity = Math.floor(Math.random() * 100) + 10;
 
       await prisma.inventory.upsert({
@@ -187,7 +196,7 @@ async function main() {
     }
   }
 
-  console.log('✅ Created inventory entries');
+  console.log('✅ Created inventory entries with varying prices');
 
   // Create sample address for user
   await prisma.address.upsert({

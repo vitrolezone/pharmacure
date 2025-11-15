@@ -1,8 +1,11 @@
-'use client';
+"use client";
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { animations, pageTransitions } from '@pharmify/ui';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ProductCard from './components/ProductCard';
 
 export default function Home() {
   return (
@@ -157,32 +160,77 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 0.9, 0.38, 1] }}
           >
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for medicines, brands, or generics..."
-                className="w-full rounded-xl border-2 border-gray-200 bg-white px-6 py-4 pr-12 text-lg shadow-md transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-              />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-primary-600 p-2 text-white transition-colors hover:bg-primary-700">
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
+            <SearchBox />
           </motion.div>
+          
+          {/* Featured Products */}
+          <section className="mt-20">
+            <h3 className="mb-6 text-2xl font-semibold text-gray-900">Featured medicines</h3>
+            <FeaturedProducts />
+          </section>
         </div>
       </section>
     </motion.main>
   );
 }
+
+function SearchBox() {
+  const [q, setQ] = useState('');
+  const router = useRouter();
+
+  return (
+    <div className="relative">
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            router.push(`/products?query=${encodeURIComponent(q)}`);
+          }
+        }}
+        type="text"
+        placeholder="Search for medicines, brands, or generics..."
+        className="w-full rounded-xl border-2 border-gray-200 bg-white px-6 py-4 pr-12 text-lg shadow-md transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+      />
+      <button
+        onClick={() => router.push(`/products?query=${encodeURIComponent(q)}`)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-primary-600 p-2 text-white transition-colors hover:bg-primary-700"
+      >
+        <svg
+          className="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function FeaturedProducts() {
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((r) => r.json())
+      .then((data) => setProducts((data || []).slice(0, 8)))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} />
+      ))}
+    </div>
+  );
+}
+
 

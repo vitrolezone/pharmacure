@@ -116,5 +116,107 @@ export class ProductsService {
       })),
     };
   }
+
+  async getPrices(productId: string) {
+    const inventories = await prisma.inventory.findMany({
+      where: { productId, quantity: { gt: 0 } },
+      include: { pharmacy: true },
+      orderBy: { price: 'asc' },
+    });
+
+    return {
+      productId,
+      prices: inventories.map((inv) => ({
+        pharmacyId: inv.pharmacyId,
+        pharmacyName: inv.pharmacy.name,
+        price: inv.price,
+        deliveryFee: inv.pharmacy.deliveryFee || 0,
+        deliveryEstimateMin: inv.pharmacy.estimatedDeliveryMinutes || 30,
+      })),
+    };
+  }
+
+  async getNearbyCheap(lat: number, lng: number, radiusKm = 5) {
+    const pharmacies = await prisma.pharmacy.findMany({
+      where: {
+        latitude: {
+          gte: lat - 0.1,
+          lte: lat + 0.1,
+        },
+        longitude: {
+          gte: lng - 0.1,
+          lte: lng + 0.1,
+        },
+      },
+      take: 3,
+    });
+
+    const pharmacyIds = pharmacies.map((p) => p.id);
+
+    const products = await prisma.product.findMany({
+      where: {
+        inventory: {
+          some: {
+            pharmacyId: { in: pharmacyIds },
+            quantity: { gt: 0 },
+          },
+        },
+      },
+      include: {
+        inventory: {
+          where: { pharmacyId: { in: pharmacyIds } },
+          include: { pharmacy: true },
+        },
+      },
+      take: 10,
+    });
+
+    return {
+      mode: 'nearby',
+      pharmacies: pharmacies.map((p) => ({
+        id: p.id,
+        name: p.name,
+        distanceKm: Math.random() * 5 + 0.5,
+        estimatedDeliveryMin: p.estimatedDeliveryMinutes || 30,
+      })),
+      products: products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        rxRequired: p.rxRequired,
+        inventory: p.inventory,
+      })),
+    };
+  }
+
+  async getCheapestProducts() {
+    const products = await prisma.product.findMany({
+      include: {
+        inventory: {
+          where: { quantity: { gt: 0 } },
+          include: { pharmacy: true },
+          orderBy: { price: 'asc' },
+        },
+      },
+      take: 50,
+    });
+
+    return {
+      mode: 'cheapest',
+      products: products
+        .filter((p) => p.inventory.length > 0)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          brand: p.brand,
+          rxRequired: p.rxRequired,
+          cheapestPrice: p.inventory[0].price,
+          cheapestPharmacyId: p.inventory[0].pharmacyId,
+          inventory: p.inventory,
+        }))
+        .sort((a, b) => a.cheapestPrice - b.cheapestPrice)
+        .slice(0, 20),
+    };
+  }
 }
 
