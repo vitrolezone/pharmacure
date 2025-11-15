@@ -1,0 +1,11 @@
+# Lottie Animation Files
+
+Place Lottie JSON files here:
+- hero_lottie.json - Pharmacist waving (hero section)
+- upload_success.json - Prescription upload success checkmark
+- confetti.json - Small confetti burst for success
+- pin_bounce.json - Delivery tracking pin animation
+- checkmark_burst.json - Generic success checkmark
+- empty_cart.json - Empty cart illustration
+- empty_search.json - Empty search results illustration
+

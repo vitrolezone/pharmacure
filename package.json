@@ -1,0 +1,28 @@
+{
+  "name": "pharmify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Two-Mode Pharmacy Marketplace (Nearby vs Cheapest)",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:web": "cd apps/web && pnpm dev",
+    "dev:api": "cd apps/api && pnpm start:dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "type-check": "pnpm -r type-check",
+    "db:generate": "cd packages/db && pnpm prisma generate",
+    "db:migrate": "cd packages/db && pnpm prisma migrate dev",
+    "db:seed": "cd packages/db && pnpm tsx seed.ts",
+    "db:studio": "cd packages/db && pnpm prisma studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
+
